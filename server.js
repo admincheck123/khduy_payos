@@ -2,6 +2,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import os from "os";
 import axios from "axios";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
