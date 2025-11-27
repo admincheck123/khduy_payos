@@ -17,16 +17,52 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 
-// CORS allowlist (comma separated)
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${PORT}`).split(",").map(s => s.trim());
+// --- Important for deployments behind proxy (Render, Heroku, etc.)
+app.set('trust proxy', 1);
+
+// CORS allowlist (comma separated). Example: "https://app.onrender.com,https://localhost:3000"
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `http://localhost:${PORT}`).split(",").map(s => s.trim()).filter(Boolean);
+// Optional: allow all (useful for quick debug; disable in production)
+const ALLOW_ALL = !!process.env.ALLOW_ALL_ORIGINS;
+
 const CORS_OPTIONS = {
-    origin: function (origin, cb) {
-        if (!origin) return cb(null, true); // allow curl / server-side
-        if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-        return cb(new Error("CORS not allowed"), false);
-    },
-    credentials: true,
-    optionsSuccessStatus: 200
+  origin: function (origin, cb) {
+    // debug log - helpful when deployed
+    console.log('CORS check - origin:', origin, 'allowed-list:', ALLOWED_ORIGINS);
+
+    // no origin (same-origin request from server, curl, or certain non-browser clients) -> allow
+    if (!origin) return cb(null, true);
+
+    // if allow-all mode enabled (debug only)
+    if (ALLOW_ALL) return cb(null, true);
+
+    // exact match first
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+
+    // also allow by hostname (strip protocol) to tolerate http/https mismatch
+    try {
+      const incomingHost = new URL(origin).host; // host includes port if present
+      for (const a of ALLOWED_ORIGINS) {
+        try {
+          if (!a) continue;
+          const allowedHost = new URL(a).host;
+          if (allowedHost === incomingHost) return cb(null, true);
+        } catch (e) {
+          // a might be just a bare host string (e.g. app.onrender.com)
+          if (a === incomingHost || a === origin) return cb(null, true);
+        }
+      }
+    } catch (e) {
+      // if URL parsing fails, fall through
+    }
+
+    // default: disallow but return an error object (status 403)
+    const err = new Error(`CORS not allowed for origin: ${origin}`);
+    err.status = 403;
+    return cb(err, false);
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(helmet());
@@ -383,5 +419,12 @@ app.post("/create-payment-link", requireAuth, async (req, res) => {
 });
 
 app.get("/", (req, res) => res.sendFile("index.html", { root: "./public" }));
+
+// Global error handler - return JSON instead of HTML for uncaught errors
+app.use((err, req, res, next) => {
+  console.error('UNCAUGHT ERROR HANDLER:', err && (err.stack || err.message || err));
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({ error: true, message: String(err.message || err) });
+});
 
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
