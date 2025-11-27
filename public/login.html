@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Đăng nhập — Ví chuyển tiền</title>
+    <style>
+        :root {
+            --bg: linear-gradient(180deg, #eaf2f6 0, #f6fbfd 100%);
+            --card: #fff;
+            --accent: #0ea5a3;
+            --accent-2: #0369a1;
+            --muted: #6b7280;
+            --text: #0b2b3a;
+            --radius: 12px;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            color: var(--text)
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 12px 40px rgba(2, 6, 23, 0.08);
+            padding: 22px
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 20px
+        }
+
+        p.sub {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 14px
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e7eef3;
+            background: #fbfeff;
+            font-size: 15px;
+            outline: none
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: white
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            color: var(--muted)
+        }
+
+        .msg {
+            margin-top: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            min-height: 20px
+        }
+
+        .center {
+            display: flex;
+            justify-content: center;
+            margin-top: 14px
+        }
+
+        .link {
+            font-size: 13px;
+            color: var(--accent-2);
+            text-decoration: none
+        }
+
+        @media(max-width:480px) {
+            .card {
+                padding: 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card" role="main" aria-labelledby="title">
+        <h1 id="title">Đăng nhập vào Ví</h1>
+        <p class="sub">Sử dụng tài khoản demo để đăng nhập.</p>
+
+        <form id="loginForm" autocomplete="off">
+            <label>
+                Tài khoản
+                <input id="username" name="username" type="text" value="kh_duy_001" required />
+            </label>
+
+            <label>
+                Mật khẩu
+                <input id="password" name="password" type="password" value="duy2001@" required />
+            </label>
+
+            <div class="actions">
+                <button type="submit" class="btn">Đăng nhập</button>
+                <button id="cancel" type="button" class="btn ghost">Hủy</button>
+            </div>
+
+            <div class="msg" id="msg"></div>
+        </form>
+
+        <div class="center">
+            <a class="link" href="/" id="back">Về trang chính</a>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const msg = document.getElementById('msg');
+        const cancel = document.getElementById('cancel');
+        const back = document.getElementById('back');
+
+        cancel.addEventListener('click', () => {
+            // clear fields and go back
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            msg.textContent = '';
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            msg.textContent = 'Đang đăng nhập...';
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const r = await fetch('/login', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const j = await r.json();
+                if (!r.ok) {
+                    msg.style.color = '#ef4444';
+                    msg.textContent = j?.message || 'Đăng nhập thất bại';
+                    return;
+                }
+                msg.style.color = '#16a34a';
+                msg.textContent = 'Đăng nhập thành công — chuyển về trang chính...';
+                // small delay so user sees message
+                setTimeout(() => { window.location.href = '/'; }, 700);
+            } catch (err) {
+                msg.style.color = '#ef4444';
+                msg.textContent = 'Lỗi kết nối';
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+
+</html>

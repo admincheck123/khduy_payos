@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Thanh toán bị huỷ</title>
+    <style>
+        body {
+            font-family: Inter, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(180deg, #fff7f7 0, #fff 100%);
+            color: #0b2b3a
+        }
+
+        .box {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(2, 6, 23, 0.08);
+            max-width: 720px;
+            text-align: center
+        }
+
+        .fail {
+            font-size: 48px;
+            color: #ef4444;
+            margin-bottom: 8px
+        }
+
+        h1 {
+            margin: 0 0 8px 0
+        }
+
+        p {
+            margin: 8px 0;
+            color: #6b7280
+        }
+
+        .actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        a.btn {
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #0ea5a3;
+            color: white;
+            font-weight: 700
+        }
+
+        a.ghost {
+            background: transparent;
+            color: #0b2b3a;
+            border: 1px solid rgba(0, 0, 0, 0.06)
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="fail">✕</div>
+        <h1>Giao dịch chưa hoàn tất</h1>
+        <p>Bạn đã hủy hoặc giao dịch chưa được hoàn tất. Bạn có thể thử lại hoặc kiểm tra lịch sử giao dịch.</p>
+        <div class="actions">
+            <a class="btn" href="/">Thử lại</a>
+            <a class="btn ghost" href="/history.html">Kiểm tra lịch sử</a>
+        </div>
+    </div>
+</body>
+
+</html>

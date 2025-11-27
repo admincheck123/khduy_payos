@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ví chuyển tiền — Demo</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="nav-left">
+            <button id="btnToggleSidebar" class="hamburger" aria-label="Toggle menu">☰</button>
+            <div class="logo">💸</div>
+            <div class="brand-text">
+                <div class="app-title">Ví Chuyển Tiền</div>
+                <div class="muted small">PayOS demo</div>
+            </div>
+        </div>
+        <nav class="nav-right">
+            <button id="navHome" class="nav-btn active">Trang chủ</button>
+            <button id="navHistory" class="nav-btn">Lịch sử</button>
+            <button id="navTopup" class="nav-btn">Nạp tiền</button>
+            <div id="navGreeting" class="nav-greet"></div>
+            <button id="btnLogin" class="nav-btn">Đăng nhập</button>
+            <button id="btnLogout" class="nav-btn" style="display:none">Đăng xuất</button>
+        </nav>
+    </header>
+
+    <main class="page" id="appPage">
+        <!-- Home -->
+        <section id="pageHome" class="page-section active">
+            <aside class="sidebar" id="sidebar">
+                <div class="wallet">
+                    <div class="wallet-title">Số dư ví</div>
+                    <div id="balance" class="wallet-value">--</div>
+                    <div class="wallet-actions">
+                        <button id="refreshBalance" class="btn small">Làm mới</button>
+                        <button id="copyBalance" class="btn ghost small">Sao chép</button>
+                    </div>
+                </div>
+                <div class="sidebar-sep"></div>
+                <div class="sidebar-meta muted small">Phiên bản demo • UI được cải tiến</div>
+            </aside>
+
+            <section class="main">
+                <div class="card form-card">
+                    <h2>Tạo lệnh chuyển tiền</h2>
+                    <form id="payoutForm" autocomplete="off">
+                        <div class="field">
+                            <label class="label">Reference ID</label>
+                            <div class="ref-row">
+                                <span id="referenceDisplay" class="ref-display">--</span>
+                                <button id="copyRef" type="button" class="btn ghost small">Sao chép</button>
+                            </div>
+                            <input id="referenceId" name="referenceId" type="hidden" />
+                        </div>
+
+                        <div class="row two">
+                            <label class="label">Số tiền (VND)
+                                <input id="amount" name="amount" type="number" min="1000" placeholder="100000"
+                                    required />
+                            </label>
+                            <label class="label">Loại
+                                <input id="category" name="category" placeholder="salary" />
+                            </label>
+                        </div>
+
+                        <label class="label">Mô tả
+                            <input id="description" name="description" placeholder="Thanh toán..." />
+                        </label>
+
+                        <div class="row two">
+                            <div class="label" style="flex:1">
+                                <div class="label-title">Ngân hàng</div>
+                                <div class="bank-input-wrap">
+                                    <input id="bankSearch" class="bank-search-input" placeholder="Gõ tên ngân hàng..."
+                                        autocomplete="off" />
+                                    <div id="bankDropdown" class="bank-dropdown hidden" role="listbox"
+                                        aria-label="Chọn ngân hàng"></div>
+                                </div>
+
+                                <!-- selected bank (hidden until chosen) -->
+                                <div id="selectedBank" class="selected-bank hidden" aria-live="polite"></div>
+
+                                <!-- toBin vẫn giữ ở dạng hidden, nhưng sẽ được set tự động khi chọn -->
+                                <input id="toBin" name="toBin" type="hidden" />
+                            </div>
+
+                            <label class="label">Số tài khoản
+                                <input id="toAccountNumber" name="toAccountNumber" placeholder="0123456789" required />
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn" type="submit">Gửi lệnh</button>
+                            <button id="clearBtn" type="button" class="btn ghost">Xóa form</button>
+                        </div>
+                    </form>
+
+                    <div class="result-area">
+                        <h3>Kết quả</h3>
+                        <pre id="result" class="result muted">Chưa có hành động</pre>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <!-- HISTORY -->
+        <section id="pageHistory" class="page-section">
+            <div class="history-card card">
+                <div class="history-head">
+                    <div>
+                        <h2>Lịch sử chuyển tiền</h2>
+                        <div class="muted small">Lấy từ PayOS</div>
+                    </div>
+                    <div class="history-controls">
+                        <input id="historySearch" placeholder="Tìm kiếm..." />
+                        <button id="historyRefresh" class="btn small">Làm mới</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px;overflow:auto">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ref</th>
+                                <th>Số tiền</th>
+                                <th>Người nhận</th>
+                                <th>Ngân hàng</th>
+                                <th>Thời gian</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr>
+                                <td colspan="7" class="muted">Chưa có dữ liệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="history-pager">
+                    <button id="historyPrev" class="btn ghost small">Trước</button>
+                    <div id="historyPageInfo" class="muted">Trang 1 / 1</div>
+                    <button id="historyNext" class="btn ghost small">Sau</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TOPUP -->
+        <section id="pageTopup" class="page-section">
+            <div class="card">
+                <h2>Nạp tiền</h2>
+                <form id="topupForm" class="topup-form">
+                    <input id="topupAmount" type="number" min="1000" placeholder="Số tiền (VND)" />
+                    <button id="topupGenerate" type="button" class="btn ghost small">Sinh mô tả</button>
+                    <button type="submit" class="btn">Tạo link</button>
+                </form>
+                <div id="topupResult" style="display:none;margin-top:12px">
+                    <pre id="topupResultMsg"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- LOGIN (embedded) -->
+        <section id="pageLogin" class="page-section">
+            <div class="card login-card">
+                <h2>Đăng nhập</h2>
+                <form id="loginForm">
+                    <label class="label">Tài khoản
+                        <input id="loginUsername" value="kh_duy_001" />
+                    </label>
+                    <label class="label">Mật khẩu
+                        <input id="loginPassword" type="password" value="duy2001@" />
+                    </label>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn" type="submit">Đăng nhập</button>
+                        <button id="loginCancel" type="button" class="btn ghost">Hủy</button>
+                    </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden">
+        <div id="toastIcon" class="toast-icon"></div>
+        <div id="toastMsg"></div>
+        <button id="toastClose" class="toast-close">✕</button>
+    </div>
+
+    <script src="/app.js" defer></script>
+</body>
+
+</html>
