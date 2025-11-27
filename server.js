@@ -64,6 +64,42 @@ function destroySession(sid) {
     SESSIONS.delete(sid);
 }
 
+app.get("/debug-ip", async (req, res) => {
+    try {
+        // private / internal IPs
+        const nets = os.networkInterfaces();
+        const privateIps = [];
+        Object.keys(nets).forEach((iface) => {
+            (nets[iface] || []).forEach((n) => {
+                if (n && n.family === "IPv4" && !n.internal) {
+                    privateIps.push({ iface, address: n.address, cidr: n.cidr || null });
+                }
+            });
+        });
+
+        // public/outbound IP (what others see) via ipify
+        let publicIp = null;
+        try {
+            const r = await axios.get("https://api.ipify.org?format=json", { timeout: 5000 });
+            publicIp = r?.data?.ip ?? null;
+        } catch (e) {
+            console.warn("get public ip failed:", e.message || e);
+        }
+
+        // optionally include forwarded ip from proxy (if behind a load balancer)
+        const forwarded = req.headers["x-forwarded-for"] || req.ip || null;
+
+        res.json({
+            publicIp,
+            privateIps,
+            forwarded
+        });
+    } catch (err) {
+        console.error("debug-ip error:", err);
+        res.status(500).json({ error: String(err) });
+    }
+});
+
 // ---------- requireAuth middleware (định nghĩa sớm để dùng cho routes) ----------
 function requireAuth(req, res, next) {
     const sid = req.cookies?.sid;
